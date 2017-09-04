@@ -1,0 +1,114 @@
+#normal position
+hold
+servo : 6 : 10 : 0.15
+servo : 1 : 10 : 0.15
+servo : 8 : 20 : 0.15
+servo : 3 : 20 : 0.15
+servo : 9 : -10 : 0.15
+servo : 4 : -10 : 0.15
+release
+sleep : 0.15
+
+# shift CG
+hold
+servo : 10 : 10 : 0.3
+servo : 5 : 10 : 0.3
+servo : 12 : -10 : 0.3
+servo : 11 : -10 : 0.3
+release
+sleep : 0.31
+
+label : lstep
+# lift the left leg
+hold
+servo : 1 : 40 : 0.3
+servo : 3 : 60 : 0.3
+servo : 4 : -20 : 0.3
+servo : 6 : 10 : 0.3
+servo : 8 : 20 : 0.3
+servo : 9 : -10 : 0.3
+release
+sleep : 0.31
+
+# swing the left leg
+hold
+servo : 3 : 40 : 0.3
+servo : 4 : 0 : 0.3
+# move the right leg also
+servo : 8 : 50 : 0.5
+servo : 9 : -40 : 0.5
+# shift CG
+servo : 10 : -10 : 0.7
+servo : 5 : -10 : 0.7
+servo : 12 : 10 : 0.7
+servo : 11 : 10 : 0.7
+release
+sleep : 0.71
+
+
+#move the CG forward
+hold
+servo : 1 : 20 : 0.4
+servo : 3 : 40 : 0.4
+servo : 4 : -20 : 0.4
+
+servo : 6 : 10 : 0.4
+servo : 8 : 60 : 0.4
+servo : 9 : -50 : 0.4
+release
+sleep : 0.41
+
+goto : rstep
+
+# back to normal position if want to stand
+hold
+servo : 6 : 10 : 0.2
+servo : 8 : 20 : 0.2
+servo : 9 : -10 : 0.2
+servo : 1 : 10 : 0.2
+servo : 3 : 20 : 0.2
+servo : 4 : -10 : 0.2
+release
+sleep : 0.21
+quit
+
+label : rstep
+hold
+# lift the right leg
+servo : 6 : 40 : 0.3
+servo : 8 : 60 : 0.3
+servo : 9 : -20 : 0.3
+servo : 1 : 10 : 0.3
+servo : 3 : 20 : 0.3
+servo : 4 : -10 : 0.3
+release
+sleep : 0.31
+
+# swing the right leg
+hold
+servo : 8 : 40 : 0.3
+servo : 9 : 0 : 0.3
+# move the left leg also
+servo : 3 : 50 : 0.5
+servo : 4 : -40 : 0.5
+# shift CG
+servo : 10 : 10 : 0.7
+servo : 5 : 10 : 0.7
+servo : 12 : -10 : 0.7
+servo : 11 : -10 : 0.7
+release
+sleep : 0.71
+
+#move the CG forward
+hold
+servo : 6 : 20 : 0.4
+servo : 8 : 40 : 0.4
+servo : 9 : -20 : 0.4
+
+servo : 1 : 10 : 0.4
+servo : 3 : 60 : 0.4
+servo : 4 : -50 : 0.4
+release
+sleep : 0.41
+
+goto : lstep

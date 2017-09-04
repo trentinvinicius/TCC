@@ -1,0 +1,44 @@
+Entradas:
+
+Vc = velocidade do carro
+angulo de direcao
+Mc = massa do carro
+Npas = numero de passageiros
+
+d = distancia ate obstaculos
+
+Np = numero de pessoas na rua
+for p in Np:
+  Xp
+  Yp
+  Thetap
+  Vp
+
+Na = numero de arvores
+for a in Na:
+  Xa
+  Ya
+
+Npo = numero de postes
+for po in Npo:
+  Xpo
+  Ypo
+
+Carros:
+  vindo:
+    veloc
+  indo:
+    veloc
+
+Pista:
+  reta
+  curvaleve
+  simples
+  dupla
+  comacostamento
+  ponte
+
+Saida:
+
+  ax3 + bx2 + cx + d
+  F

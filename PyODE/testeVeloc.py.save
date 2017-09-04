@@ -1,0 +1,45 @@
+import ode
+import odeViz.ode_visualization as ode_viz
+
+world = ode.World()
+world.setGravity((0,-9.81,0))
+
+body = ode.Body(world)
+M = ode.Mass()
+M.setBox(100, 1, 2, 3)
+#M.mass = 1.0
+body.setMass(M)
+
+#body.addForce((0,10,0))
+
+
+space = ode.Space()
+
+body.setPosition( (0,2,0) )
+#body.addForce( (0,200,0) )
+
+geom = ode.GeomBox(space, lengths = (1, 2, 3))
+geom.setBody(body)
+
+body.setPosition((0,2,0))
+body.setLinearVel((0.1,0,0))
+
+fps = 10
+dt = 0.1
+
+
+floor = ode.GeomPlane(space, (0,1,0), 0)
+
+class my_sim(ode_viz.ODE_Visualization):
+   def __init__(self, world, space, dt):
+      ode_viz.ODE_Visualization.__init__(self, world, space, dt)
+      self.GetActiveCamera().SetPosition(0.028, 11.878, 18.654)
+      self.GetActiveCamera().SetFocalPoint(-0.1105, 2.8448, -0.4285)
+      self.GetActiveCamera().SetViewUp(0.002656, 0.9038, -0.4278)
+   def execute(self, caller, event):
+      self.update()
+      world.step(dt)
+      u,v,w = body.getPosition()
+      print "Pos: ", u,v,w
+viz = my_sim(world, [space], dt)
+viz.start()

@@ -61,23 +61,65 @@ world.setCFM(1E-5)
 #create Space
 space = ode.Space()
 
-bodies = []
-geoms = []
-
 # Create a plane geom which prevent the objects from falling forever
 floor = ode.GeomPlane(space, (0, 1, 0), -4)
+i = 0
+j = 0
+se = 0
 
-def idlefunc():
-    n = 2
-    ang = c.flJoint.getAngle2Rate()
-    ang2 = c.frJoint.getAngle2Rate()
-    print ang, ang2
+
+def idlefunc():    
+    global i, c2, j, se
     
+    c2.addTorque(40)
+    print c2.getSteerAngle() 
 
+    pos = np.array(c2.bodyCar.getPosition())
+    print pos
+    viz.GetActiveCamera().SetFocalPoint(pos)
+    
+    if i > 1000:
+      ang = -pi/6
+    else:
+      ang = pi/6
 
+    pos[1] += 20
+    pos[0] -= 20*cos(ang)
+    pos[2] -= 20*sin(ang)
+
+    #c2.setSteerAngle(ang)
+    i += 1
+    viz.GetActiveCamera().SetPosition(pos)
+    
+    #c2.addTorque(10)
+    '''
+    c = c2.bodyFWL.getRotation()
+    #print c 
+    #c2.setLinearVelocity((0.5,0,0))
+    c2.bodyRWL.setAngularVel((1.5, 0.0, 0.0))
+    c2.bodyRWR.setAngularVel((1.5, 0.0, 0.0))
+    i += 1
+    if (i%10 == 0):
+      ang = (j*pi/180)
+      if (se == 0):
+        if j < 30:
+          j += 1
+        else:
+          se = 1
+          j -= 1
+      else:
+        if j > -30:
+          j -= 1
+        else:
+          se = 0
+          j += 1
+      c2.steer(ang)
+      print ang*180/pi
+    '''
+    n = 2
     for _ in range(n):
         # Detect collisions and create contact joints
-        c.addTorque(10)
+        
 
         space.collide((world,contactgroup), near_callback)
 
@@ -86,6 +128,7 @@ def idlefunc():
 
         # Remove all contact joints
         contactgroup.empty()
+
 
 class my_sim(ode_viz.ODE_Visualization):
    def __init__(self, world, space, dt):
@@ -99,11 +142,19 @@ class my_sim(ode_viz.ODE_Visualization):
    def execute(self, caller, event):
       idlefunc()
       self.update()
-
+   
 viz = my_sim(world, [space], dt)
 #car()
-c = Car(world,[space],viz)
-c.addTorque(100.0)
+#c = Car(world,[space],viz, mainCar = False, direction = 1, position = (10, 0, 0))
+road = Road(world, [space], viz, 2)
+c2 = Car(world, [space], viz, road)
+#c2.steer(pi/6)
+#c2.bodyCar.
+#c.setLinearVelocity((1,0,0))
+#c2.setLinearVelocity((0.5,0,0))
+#c2.steer(100.0)
+#c.addTorque(-100.0)
+#c2.addTorque(1000.0)
 #c.setLinearVelocity((0.1,0,0))
 #p = Person(world, [space], viz, (5, 0, 3), (0, 0, 5))
 global allGroups
@@ -112,4 +163,7 @@ global allGroups
 for group in allGroups:
   groups = groups + group
 allGroups = groups'''
+
+
+
 viz.start()

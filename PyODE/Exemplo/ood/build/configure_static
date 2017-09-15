@@ -1,0 +1,8 @@
+#!/bin/bash
+
+
+cmake   .. \
+        -DOOD_USE_SINGLE_PRECISION=ON \
+        -DCMAKE_INSTALL_PREFIX=/usr/local/ \
+        -DDYNAMIC_OOD=OFF \
+        -DCMAKE_BUILD_TYPE=Release

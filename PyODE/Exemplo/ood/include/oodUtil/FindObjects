@@ -1,0 +1,139 @@
+/*!
+ * @file FindObjects
+ * @author Rocco Martino
+ */
+/***************************************************************************
+ *   Copyright (C) 2012 - 2017 by Rocco Martino                            *
+ *   martinorocco@gmail.com                                                *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU Lesser General Public License for more details.                   *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _OODUTIL_FINDOBJECTS_HPP
+#define _OODUTIL_FINDOBJECTS_HPP
+
+
+
+
+/* ======================================================================= */
+#include <osg/NodeVisitor>
+
+#include <ood/Export>
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+namespace ood {
+    class CharacterBase ;
+    class Joint ;
+    class Manager ;
+    class RigidBody ;
+    class World ;
+}
+
+
+namespace osg {
+    class Texture2D ;
+}
+/* ======================================================================= */
+
+
+
+
+namespace oodUtil
+{
+
+
+
+
+/* ======================================================================= */
+/* ....................................................................... */
+extern OOD_EXPORT osg::Node*
+findNode( osg::Node* graph, const std::string& name ) ;
+
+
+
+extern OOD_EXPORT osg::Texture2D*
+findTexture2D( osg::Node* graph, const std::string& name ) ;
+
+
+
+extern OOD_EXPORT osg::StateSet*
+findStateSet( osg::Node* graph, const std::string& name ) ;
+
+
+
+extern OOD_EXPORT ood::Manager*
+findManager( osg::Node* graph ) ;
+
+
+
+extern OOD_EXPORT ood::World*
+findWorld( osg::Node* graph ) ;
+
+
+
+typedef std::vector< osg::ref_ptr<ood::Joint> >  Joints ;
+
+//! returns the number of objects
+extern OOD_EXPORT unsigned int
+findJoints( ood::World* world, Joints& joints, const std::string& regex="" ) ;
+
+
+
+typedef std::vector< osg::ref_ptr<ood::RigidBody> >  RigidBodies ;
+
+//! returns the number of objects
+extern OOD_EXPORT unsigned int
+findRigidBodies( ood::World* world, RigidBodies& bodies, const std::string& regex="" ) ;
+
+
+
+typedef std::vector< osg::ref_ptr<ood::CharacterBase> >  Characters ;
+
+//! returns the number of objects
+extern OOD_EXPORT unsigned int
+findCharacters( ood::World* world, Characters& characters, const std::string& regex="" ) ;
+
+
+
+typedef std::vector< osg::ref_ptr<ood::Manager> >    Managers ;
+
+//! returns the number of objects
+extern OOD_EXPORT unsigned int
+findManagers( osg::Node* graph, Managers& managers) ;
+
+
+
+typedef std::vector< osg::ref_ptr<ood::World> >  Worlds ;
+
+//! returns the number of objects
+extern OOD_EXPORT unsigned int
+findWorlds( osg::Node* graph, Worlds& worlds) ;
+/* ....................................................................... */
+/* ======================================================================= */
+
+
+
+
+} // namespace oodUtil
+
+
+
+
+#endif /* _OODUTIL_FINDOBJECTS_HPP */

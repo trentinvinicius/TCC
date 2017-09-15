@@ -1,0 +1,258 @@
+/*!
+ * @file RayCar
+ * @author Rocco Martino
+ */
+/***************************************************************************
+ *   Copyright (C) 2015 by Rocco Martino                                   *
+ *   martinorocco@gmail.com                                                *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _OOD_RAYCAR_HPP
+#define _OOD_RAYCAR_HPP
+
+
+
+
+/* ======================================================================= */
+#include <ood/Container>
+#include <ood/Engine>
+/* ======================================================================= */
+
+
+
+
+namespace ood
+{
+
+
+
+
+/* ======================================================================= */
+class RayWheel ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+/* ....................................................................... */
+//!
+/*!
+ *
+ */
+class OOD_EXPORT RayCar: public Container
+{
+/* ======================================================================= */
+public:
+             RayCar(void) ;
+             RayCar(const RayCar& other, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) ;
+
+protected:
+    virtual ~RayCar(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    META_Object(ood, RayCar) ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Set the up versor. Default: osg::Z_AXIS
+    inline void setUpVersor( const osg::Vec3& up_versor ) ;
+
+    //! Get the up versor. Default: osg::Z_AXIS
+    inline osg::Vec3& getUpVersor(void) ;
+
+    //! Get the const up versor. Default: osg::Z_AXIS
+    inline const osg::Vec3& getUpVersor(void) const ;
+
+    //! Set the front versor. Default: osg::Y_AXIS
+    inline void setFrontVersor( const osg::Vec3& front_versor ) ;
+
+    //! Get the front versor. Default: osg::Y_AXIS
+    inline osg::Vec3& getFrontVersor(void) ;
+
+    //! Get the const front versor. Default: osg::Y_AXIS
+    inline const osg::Vec3& getFrontVersor(void) const ;
+
+    //! Set the dsitance from the center of mass to the bottom of the car
+    inline void setBottom( ooReal bottom ) ;
+
+    //! Get the const dsitance from the center of mass to the bottom of the car
+    inline ooReal getBottom(void) const ;
+
+    void    computeRideHeight( ooReal front, ooReal rear ) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Set the engine
+    inline void setEngine( Engine* engine ) ;
+
+    //! Get the engine
+    inline Engine* getEngine(void) ;
+
+    //! Get the const engine
+    inline const Engine* getEngine(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Set the drive
+    inline void setDrive( ooReal drive ) ;
+
+    //! Get the const drive
+    inline ooReal getDrive(void) const ;
+
+    //! Set the steer
+    inline void setSteer( ooReal steer ) ;
+
+    //! Get the const steer
+    inline ooReal getSteer(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Set the body
+    inline void setBody( RigidBody* body ) ;
+
+    //! Get the body
+    inline RigidBody* getBody(void) ;
+
+    //! Get the const body
+    inline const RigidBody* getBody(void) const ;
+
+
+
+
+
+    typedef std::vector< osg::ref_ptr<SliderJoint> >    SuspensionList ;
+
+
+    //! Set the suspension list
+    inline void setSuspensionList( const SuspensionList& suspension_list ) ;
+
+    //! Get the suspension list
+    inline SuspensionList& getSuspensionList(void) ;
+
+    //! Get the const suspension list
+    inline const SuspensionList& getSuspensionList(void) const ;
+
+
+
+
+
+
+    typedef enum {
+        FRONT_LEFT  = 0,
+        FRONT_RIGHT = 1,
+        REAR_LEFT   = 2,
+        REAR_RIGHT  = 3,
+        NUM_SUSPENSIONS  = 4
+    } SuspensionSelect ;
+
+
+    RayWheel*  getWheel( SuspensionSelect which ) ;
+    const RayWheel*  getWheel( SuspensionSelect which ) const ;
+
+    SliderJoint*    getSuspension( SuspensionSelect which ) ;
+    const SliderJoint*    getSuspension( SuspensionSelect which ) const ;
+
+    ooReal  computeAverageSpeed(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    virtual void    update( ooReal step_size ) ;
+    virtual void    postUpdate( ooReal step_size ) ;
+
+
+    virtual RayCar*                 asRayCar(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+protected:
+    ooReal  enginePropagate( ooReal step_size, ooReal& vmax ) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+private:
+    osg::ref_ptr<RigidBody> m_body ;
+
+    SuspensionList      m_suspension_list ;
+
+
+    osg::Vec3   m_up_versor ;
+    osg::Vec3   m_front_versor ;
+
+    osg::ref_ptr<Engine>    m_engine ;
+
+    ooReal      m_drive ;
+
+    ooReal      m_steer ;
+
+    ooReal      m_bottom ;
+/* ======================================================================= */
+} ;
+/* ....................................................................... */
+/* ======================================================================= */
+
+
+
+
+} // namespace ood
+
+
+
+
+#include "RayCar.inl"
+
+
+
+
+#endif /* _OOD_RAYCAR_HPP */

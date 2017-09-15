@@ -1,0 +1,197 @@
+/*!
+ * @file RayWheel
+ * @author Rocco Martino
+ */
+/***************************************************************************
+ *   Copyright (C) 2015 by Rocco Martino                                   *
+ *   martinorocco@gmail.com                                                *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _OOD_RAYWHEEL_HPP
+#define _OOD_RAYWHEEL_HPP
+
+
+
+
+/* ======================================================================= */
+#include <ood/RigidBody>
+#include <ood/Space>
+#include <ood/CommonRayCastResults>
+/* ======================================================================= */
+
+
+
+
+namespace ood
+{
+
+
+
+
+/* ======================================================================= */
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+/* ....................................................................... */
+//!
+/*!
+ *
+ */
+class OOD_EXPORT RayWheel: public RigidBody
+{
+/* ======================================================================= */
+public:
+             RayWheel(void) ;
+             RayWheel(const RayWheel& other, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) ;
+             RayWheel(const RigidBody& other, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) ;
+
+protected:
+    virtual ~RayWheel(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    META_Object(ood, RayWheel) ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Set the radius. Default: 0.4
+    inline void setRadius( ooReal radius ) ;
+
+    //! Get the const radius. Default: 0.4
+    inline ooReal getRadius(void) const ;
+
+    //! Set the grip. Default 1.0
+    inline void setGrip( ooReal grip ) ;
+
+    //! Get the const grip. Default 1.0
+    inline ooReal getGrip(void) const ;
+
+    //! Set the brake. Default 0.0
+    inline void setBrake( ooReal brake ) ;
+
+    //! Get the const brake. Default 0.0
+    inline ooReal getBrake(void) const ;
+
+    //! Set the colliding
+    inline void setColliding( bool colliding ) ;
+
+    //! Get the const colliding
+    inline bool getColliding(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Set the skid
+    inline void setSkid( ooReal skid ) ;
+
+    //! Get the const skid
+    inline ooReal getSkid(void) const ;
+
+
+    inline ooReal getSpeed(void) const
+        {   return m_speed ; }
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    bool    collide(    const osg::Vec3&    direction,
+                        const osg::Vec3&    fdir1,
+                        dContact&           contact_out,
+                        Collidable*         body = NULL ) ;
+
+
+
+    void    propagateFree(  ooReal step_size,
+                            ooReal torque,
+                            ooReal vel ) ;
+
+
+
+    void    propagateConstrained(   ooReal              step_size,
+                                    ooReal              torque,
+                                    ooReal              vel,
+                                    const osg::Vec3&    forces,
+                                    const dContact&     contact
+                                ) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    virtual RayWheel*   asRayWheel(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+private:
+    ooReal      m_radius ;
+    ooReal      m_grip ;
+    ooReal      m_brake ;
+
+    ooReal      m_speed ;
+    ooReal      m_skid ;
+
+
+    bool        m_colliding ;
+
+    osg::ref_ptr<NearestNotMeRayCastResult>     m_ray_cast_result ;
+/* ======================================================================= */
+} ;
+/* ....................................................................... */
+/* ======================================================================= */
+
+
+
+
+} // namespace ood
+
+
+
+
+#include "RayWheel.inl"
+
+
+
+
+#endif /* _OOD_RAYWHEEL_HPP */

@@ -1,0 +1,191 @@
+/*!
+ * @file UniversalJoint
+ * @author Rocco Martino
+ */
+/***************************************************************************
+ *   Copyright (C) 2010 - 2017 by Rocco Martino                            *
+ *   martinorocco@gmail.com                                                *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU Lesser General Public License for more details.                   *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _OOD_UNIVERSALJOINT_HPP
+#define _OOD_UNIVERSALJOINT_HPP
+
+
+
+
+/* ======================================================================= */
+#include <ood/Joint>
+/* ======================================================================= */
+
+
+
+
+namespace ood
+{
+
+
+
+
+/* ======================================================================= */
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+/* ....................................................................... */
+//! See the ode wiki
+class OOD_EXPORT UniversalJoint: public Joint
+{
+/* ======================================================================= */
+public:
+             UniversalJoint(void) ;
+             UniversalJoint(const UniversalJoint& other, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) ;
+
+protected:
+    virtual ~UniversalJoint(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    META_Object(ood, UniversalJoint) ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Get the angle between the bodies on axis 1
+    /*!
+     * When the constraint is created, the positions of the bodies are
+     * examined and that consiguration will be the "zero position"
+     */
+    inline ooReal   getAngle1(void) const ;
+
+
+    //! Get the angle between the bodies on axis 2
+    /*!
+     * When the constraint is created, the positions of the bodies are
+     * examined and that consiguration will be the "zero position"
+     */
+    inline ooReal   getAngle2(void) const ;
+
+    //! Get the angular speed around axis 1
+    inline ooReal   getAngle1Rate(void) const ;
+
+    //! Get the angular speed around axis 2
+    inline ooReal   getAngle2Rate(void) const ;
+
+    //! Set the auto compute relative values. Default true
+    inline void setAutoComputeRelativeValues( bool auto_compute_relative_values ) ;
+
+    //! Get the const auto compute relative values. Default true
+    inline bool getAutoComputeRelativeValues(void) const ;
+
+    //! Set the relative rotation 1
+    inline void setRelativeRotation1( const osg::Quat& relative_rotation ) ;
+
+    //! Get the relative rotation 1
+    inline osg::Quat getRelativeRotation1(void) const ;
+
+    //! Set the relative rotation 2
+    inline void setRelativeRotation2( const osg::Quat& relative_rotation ) ;
+
+    //! Get the relative rotation 2
+    inline osg::Quat getRelativeRotation2(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Update the joint transformation
+    /*!
+     * The transformation is:\n
+     * - X = Axis1 ;\n
+     * - Y = Axis2 ;\n
+     * - Z = X ^ Y ;\n
+     * - The origin is in anchor
+     */
+    virtual void    postUpdate(ooReal step_size) ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    virtual ooReal  getPosition( Axis a ) const ;
+    virtual ooReal  getPositionRate( Axis a ) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+protected:
+    virtual UniversalJoint*     asUniversalJoint(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+protected:
+    virtual dJointID    cloneODEJoint(dWorldID world) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+private:
+/* ======================================================================= */
+} ;
+/* ....................................................................... */
+/* ======================================================================= */
+
+
+
+
+} // namespace ood
+
+
+
+
+#include "UniversalJoint.inl"
+
+
+
+
+#endif /* _OOD_UNIVERSALJOINT_HPP */

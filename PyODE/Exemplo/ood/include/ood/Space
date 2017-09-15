@@ -1,0 +1,286 @@
+/*!
+ * @file Space
+ * @author Rocco Martino
+ */
+/***************************************************************************
+ *   Copyright (C) 2010 - 2014 by Rocco Martino                            *
+ *   martinorocco@gmail.com                                                *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU Lesser General Public License for more details.                   *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _OOD_SPACE_HPP
+#define _OOD_SPACE_HPP
+
+
+
+
+/* ======================================================================= */
+#include <ood/World>
+#include <ood/NearCallback>
+
+#include <ood/ODE>
+/* ======================================================================= */
+
+
+
+
+namespace ood
+{
+
+
+
+
+/* ======================================================================= */
+class   ODEObject ;
+class   RigidBody ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+/* ....................................................................... */
+//! Collision handling
+class OOD_EXPORT Space: public World
+{
+/* ======================================================================= */
+public:
+             Space(void) ;
+             Space(const Space& other, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) ;
+
+protected:
+    virtual ~Space(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    META_Object(ood, Space) ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    //! The result of a ray cast
+    class OOD_EXPORT RayCastResult: public osg::Referenced
+    {
+    public:
+             RayCastResult(void) {}
+             RayCastResult(const RayCastResult& other): osg::Referenced(other) {}
+
+    protected:
+            ~RayCastResult(void) {}
+
+    public:
+        virtual void    reset(void) {}
+
+        virtual void    addContact( Collidable* other,
+                                    const osg::Vec3& position,
+                                    const osg::Vec3& surface_normal,
+                                    ooReal distance ) = 0 ;
+    } ;
+
+
+
+
+
+
+    //! Ray parameters
+    typedef enum {
+        /*!
+         * from the ODE Wiki: determines if dCollide returns the first
+         * collision detected between the ray geom and a trimesh geom, even if
+         * that collision is not the nearest to the ray start position
+         */
+        FIRST_CONTACT   = 1,
+
+        /*!
+         * from the ODE Wiki: determines if dCollide returns a collision
+         * between the ray geom and a trimesh geom when the collision is
+         * between the ray and a backfacing triangle.
+         */
+        BACKFACE_CULL   = 2,
+
+        /*!
+         * from the ODE Wiki: determines if dCollide returns the closest hit
+         * between the ray and a trimesh geom. If ClosestHit is false, the
+         * hit returned by dCollide may not be the nearest collision to the
+         * ray position. This parameter is ignored if FirstContact is set to
+         * true. If ClosestHit is set to true and BackfaceCull is set to
+         * false, the hit returned by dCollide may be between the ray and a
+         * backfacing triangle.
+         */
+        CLOSEST_HIT     = 4,
+
+        //! Default mode used
+        DEFAULT_MODE    = BACKFACE_CULL | CLOSEST_HIT
+    } RayParameter ;
+
+
+
+
+
+
+    //! Perform a ray cast
+    /*!
+     * @param   from            where the ray starts
+     *
+     * @param   to              where the ray ends
+     *
+     * @param   result          If NULL there will be a SIGSEGV (or assert)
+     *
+     * @param   max_contacts    maximum number of contacts to generate
+     *
+     * @param   param_mask      See RayParameter
+     *
+     * @param   collide_bits    Default: -1
+     *
+     * @param   category_bits   Default: -1
+     *
+     * @return  number of contacts
+     */
+    unsigned int    performRayCast( const osg::Vec3&    from,
+                                    const osg::Vec3&    to,
+                                    RayCastResult*      result,
+                                    unsigned int        max_contacts = 4,
+                                    unsigned int        param_mask = DEFAULT_MODE,
+                                    int                 collide_bits = -1,
+                                    int                 category_bits = -1
+                                  ) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! advance, collide, step
+    virtual void    update(ooReal step_size) ;
+
+
+    //! advance, collide, threadStep
+    virtual void    threadUpdate(ooReal step_size) ;
+
+    //! Invokes dCollide and the collision callbacks
+    void    collide(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! This should never be used. Default: false
+    inline void     setCleanup(bool mode) ;
+
+    //! This should never be used. Default: false
+    inline bool     getCleanup(void) const ;
+
+    //! Set the min level. Default: -3
+    inline void setMinLevel( int min_level ) ;
+
+    //! Get the const min level. Default: -3
+    inline int getMinLevel(void) const ;
+
+    //! Set the max level. Default: 10
+    inline void setMaxLevel( int max_level ) ;
+
+    //! Get the const max level. Default: 10
+    inline int getMaxLevel(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Get the dSpaceID
+    inline dSpaceID     getODESpace(void) ;
+
+
+    //! Set the near callback
+    inline void     setNearCallback(NearCallback* nc) ;
+
+    //! Get the near callback
+    inline NearCallback*    getNearCallback(void) ;
+
+    //! Get the const near callback
+    inline const NearCallback*  getNearCallback(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    virtual Space*      asSpace(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Copy the space properties
+    void        copySpace(const Space* other) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+private:
+    static void     _cloneODESpace(dSpaceID src, dSpaceID dst) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+private:
+    dSpaceID            m_ODE_space ;
+    dNearCallback*      m_overlapping_pairs_dispatcher ;
+
+    osg::ref_ptr<NearCallback>  m_near_callback ;
+/* ======================================================================= */
+} ;
+/* ....................................................................... */
+/* ======================================================================= */
+
+
+
+
+} // namespace ood
+
+
+
+
+#include "Space.inl"
+
+
+
+
+#endif /* _OOD_SPACE_HPP */

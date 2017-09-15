@@ -1,0 +1,3 @@
+ADD_SUBDIRECTORY( oodynamics )
+ADD_SUBDIRECTORY( ooengine )
+ADD_SUBDIRECTORY( ooraycar )

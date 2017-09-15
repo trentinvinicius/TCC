@@ -1,0 +1,268 @@
+/*!
+ * @file Calendar
+ * @author Rocco Martino
+ */
+/***************************************************************************
+ *   Copyright (C) 2017 by Rocco Martino                                   *
+ *   martinorocco@gmail.com                                                *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU Lesser General Public License for more details.                   *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _OOD_CALENDAR_HPP
+#define _OOD_CALENDAR_HPP
+
+
+
+
+/* ======================================================================= */
+#include <ood/OObject>
+/* ======================================================================= */
+
+
+
+
+namespace ood
+{
+
+
+
+
+/* ======================================================================= */
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+/* ....................................................................... */
+//!
+class OOD_EXPORT Calendar: public OObject
+{
+/* ======================================================================= */
+public:
+             Calendar(void) ;
+             Calendar(const Calendar& other, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) ;
+
+protected:
+    virtual ~Calendar(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    META_Object(ood, Calendar) ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    // Accessors - do not edit this line
+
+
+    // set the east. DEfault: X axis
+    inline void setEast( const osg::Vec3& east ) ;
+
+    // get the east. DEfault: X axis
+    inline osg::Vec3& getEast(void) ;
+
+    // get the const east
+    inline const osg::Vec3& getEast(void) const ;
+
+
+
+    // set the north. Default: Y axis
+    inline void setNorth( const osg::Vec3& north ) ;
+
+    // get the north. Default: Y axis
+    inline osg::Vec3& getNorth(void) ;
+
+    // get the const north
+    inline const osg::Vec3& getNorth(void) const ;
+
+
+
+    // set the latitude. Default 35 + 31'
+    inline void setLatitude( ooReal latitude ) ;
+
+    // get the const latitude. Default 35 + 31'
+    inline ooReal getLatitude(void) const ;
+
+
+
+    // set the axis inclination. Default 23 + 27'
+    inline void setAxisInclination( ooReal axis_inclination ) ;
+
+    // get the const axis inclination. Default 23 + 27'
+    inline ooReal getAxisInclination(void) const ;
+
+
+
+    // set the time
+    inline void setTime( ooReal time ) ;
+
+    // get the const time
+    inline ooReal getTime(void) const ;
+
+
+
+    // set the temporal progression. Default 1.0
+    inline void setTemporalProgression( ooReal temporal_progression ) ;
+
+    // get the const temporal progression. Default 1.0
+    inline ooReal getTemporalProgression(void) const ;
+
+
+
+    // set the seconds in minute. Default 60
+    inline void setSecondsInMinute( unsigned int seconds_in_minute ) ;
+
+    // get the const seconds in minute. Default 60
+    inline unsigned int getSecondsInMinute(void) const ;
+
+
+
+    // set the minutes in hour. Default 60
+    inline void setMinutesInHour( unsigned int minutes_in_hour ) ;
+
+    // get the const minutes in hour. Default 60
+    inline unsigned int getMinutesInHour(void) const ;
+
+
+
+    // set the hours in day. Default 24
+    inline void setHoursInDay( unsigned int hours_in_day ) ;
+
+    // get the const hours in day. Default 24
+    inline unsigned int getHoursInDay(void) const ;
+
+
+
+    // set the days in year. Default 365
+    inline void setDaysInYear( unsigned int days_in_year ) ;
+
+    // get the const days in year. Default 365
+    inline unsigned int getDaysInYear(void) const ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    void    computeDate( ooReal time,
+                         unsigned int& day,
+                         unsigned int& hour,
+                         unsigned int& minute,
+                         unsigned int& second
+                       ) ;
+
+
+    inline void computeDate( unsigned int& day,
+                             unsigned int& hour,
+                             unsigned int& minute,
+                             unsigned int& second )
+
+        { computeDate( m_time, day, hour, minute, second ) ; }
+
+
+
+
+    void computeSunPosition( ooReal time, osg::Vec3& dir ) ;
+
+    inline void computeSunPosition( osg::Vec3& dir )
+        { computeSunPosition( m_time, dir ) ; }
+
+
+    virtual void    update(ooReal step_size) ;
+
+
+    inline void setDate( unsigned int day,
+                         unsigned int hour,
+                         unsigned int minute,
+                         unsigned int second )
+    {
+        setTime( second +
+                 minute * m_seconds_in_minute +
+                 hour * m_minutes_in_hour * m_seconds_in_minute +
+                 day * m_hours_in_day * m_minutes_in_hour * m_seconds_in_minute ) ;
+    }
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+private:
+    // Private properties - do not edit this line
+
+    osg::Vec3    m_east ;
+
+    osg::Vec3    m_north ;
+
+    ooReal    m_latitude ;
+
+    ooReal    m_axis_inclination ;
+
+    ooReal    m_time ;
+
+    ooReal    m_temporal_progression ;
+
+    unsigned int    m_seconds_in_minute ;
+
+    unsigned int    m_minutes_in_hour ;
+
+    unsigned int    m_hours_in_day ;
+
+    unsigned int    m_days_in_year ;
+/* ======================================================================= */
+} ;
+/* ....................................................................... */
+/* ======================================================================= */
+
+
+
+
+} // namespace ood
+
+
+
+
+#include "Calendar.inl"
+
+
+
+
+#endif /* _OOD_CALENDAR_HPP */

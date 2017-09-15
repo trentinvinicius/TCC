@@ -1,0 +1,226 @@
+/*!
+ * @file SliderJoint
+ * @author Rocco Martino
+ */
+/***************************************************************************
+ *   Copyright (C) 2012 - 2015 by Rocco Martino                            *
+ *   martinorocco@gmail.com                                                *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License as        *
+ *   published by the Free Software Foundation; either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU Lesser General Public License for more details.                   *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _OOD_SLIDERJOINT_HPP
+#define _OOD_SLIDERJOINT_HPP
+
+
+
+
+/* ======================================================================= */
+#include <ood/Joint>
+/* ======================================================================= */
+
+
+
+
+namespace ood
+{
+
+
+
+
+/* ======================================================================= */
+//! Convert value from kilogram-millimetre to newton-metre
+inline ooReal   inKgmm( ooReal value )
+{
+    return value * 9.81 * 1.0e3 ;
+}
+
+
+
+
+//! Convert value from kilogram per millisecond to newton-second per metre
+inline ooReal   inKgms( ooReal value )
+{
+    return value * 1.0e3 ;
+}
+
+
+
+
+//! Convert value from kilogram to newton
+inline ooReal   inKg( ooReal value )
+{
+    return value * 9.81 ;
+}
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+/* ....................................................................... */
+//! A slider joint
+/*!
+ */
+class OOD_EXPORT SliderJoint: public Joint
+{
+/* ======================================================================= */
+public:
+             SliderJoint(void) ;
+             SliderJoint(const SliderJoint& other, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY) ;
+
+protected:
+    virtual ~SliderJoint(void) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    META_Object(ood, SliderJoint) ;
+/* ======================================================================= */
+
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+public:
+    typedef enum {
+        ERP_CFM,
+        SPRING_DAMPER
+    } StopMode ;
+
+
+    //! Set the stop mode. Default: ERP_CFM
+    inline void setStopMode( StopMode stop_mode ) ;
+
+    //! Get the const stop mode. Default: ERP_CFM
+    inline StopMode getStopMode(void) const ;
+
+    //! Set the spring. Default: 1 N/m
+    inline void setSpring( ooReal spring ) ;
+
+    //! Get the const spring. Default: 1 N/m
+    inline ooReal getSpring(void) const ;
+
+    //! Set the damper bound. Default: 0 Ns/m
+    inline void setDamperBound( ooReal damper_bound ) ;
+
+    //! Get the const damper bound. Default: 0 Ns/m
+    inline ooReal getDamperBound(void) const ;
+
+    //! Set the damper rebound. Default: 0 Ns/m
+    inline void setDamperRebound( ooReal damper_rebound ) ;
+
+    //! Get the const damper rebound. Default: 0 Ns/m
+    inline ooReal getDamperRebound(void) const ;
+
+    //! Set the preload. Default: 0 N
+    inline void setPreload( ooReal preload ) ;
+
+    //! Get the const preload. Default: 0 N
+    inline ooReal getPreload(void) const ;
+
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Set the auto compute relative values
+    inline void setAutoComputeRelativeValues( bool auto_compute_relative_values ) ;
+
+    //! Get the const auto compute relative values
+    inline bool getAutoComputeRelativeValues(void) const ;
+
+    //! Set the relative rotation of body1 w.r.t. body2
+    inline void setRelativeRotation( const osg::Quat& relative_rotation ) ;
+
+    //! Get the relative rotation of body1 w.r.t. body2
+    inline osg::Quat getRelativeRotation(void) const ;
+
+    //! Set the relative position of body1 w.r.t. body2
+    inline void setRelativePosition( const osg::Vec3& relative_position ) ;
+
+    //! Get the relative position of body1 w.r.t. body2
+    inline osg::Vec3 getRelativePosition(void) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    virtual ooReal  getPosition( Axis a ) const ;
+    virtual ooReal  getPositionRate( Axis a ) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+public:
+    //! Quick dynamic cast
+    virtual SliderJoint*            asSliderJoint(void) ;
+
+    virtual void    update( ooReal step_size ) ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+protected:
+    virtual dJointID    cloneODEJoint(dWorldID world) const ;
+/* ======================================================================= */
+
+
+
+
+/* ======================================================================= */
+private:
+    StopMode    m_stop_mode ;
+
+    ooReal      m_spring ;
+    ooReal      m_damper_bound ;
+    ooReal      m_damper_rebound ;
+    ooReal      m_preload ;
+/* ======================================================================= */
+} ;
+/* ....................................................................... */
+/* ======================================================================= */
+
+
+
+
+} // namespace ood
+
+
+
+
+#include "SliderJoint.inl"
+
+
+
+
+#endif /* _OOD_SLIDERJOINT_HPP */

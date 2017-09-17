@@ -1,8 +1,7 @@
 import ode
 import numpy as np
-from math import cos, sin, pi
+from math import cos, sin, pi, atan2, sqrt
 from constants import *
-import vtk
 
 allGroups = []
 
@@ -81,14 +80,6 @@ class Car(object):
         self.flMotorRoll.enable()      
         self.flMotorRoll.setParam(ode.ParamSuspensionCFM, 0.5)
         self.flMotorRoll.setParam(ode.ParamSuspensionERP, 0.8)
-        #create front left motor yaw
-        self.flMotorYaw = ode.AMotor(self.world)
-        self.flMotorYaw.attach(self.bodyCar, self.bodyRWL)
-        self.flMotorYaw.setNumAxes(1)
-        self.flMotorYaw.setAxis(0, 2, (0, 1, 0))
-        self.flMotorYaw.enable()     
-        self.flMotorYaw.setParam(ode.ParamSuspensionCFM, 0.5)
-        self.flMotorYaw.setParam(ode.ParamSuspensionERP, 0.8)
         #create front right motor
         self.frMotorRoll = ode.AMotor(self.world)
         self.frMotorRoll.attach(self.bodyCar, self.bodyRWR)
@@ -97,14 +88,6 @@ class Car(object):
         self.frMotorRoll.enable()
         self.frMotorRoll.setParam(ode.ParamSuspensionCFM, 0.5)
         self.frMotorRoll.setParam(ode.ParamSuspensionERP, 0.8)
-        #create front right motor
-        self.frMotorYaw = ode.AMotor(self.world)
-        self.frMotorYaw.attach(self.bodyCar, self.bodyRWR)
-        self.frMotorYaw.setNumAxes(1)
-        self.frMotorYaw.setAxis(0, 2, (0, 1, 0))
-        self.frMotorYaw.enable()
-        self.frMotorYaw.setParam(ode.ParamSuspensionCFM, 0.5)
-        self.frMotorYaw.setParam(ode.ParamSuspensionERP, 0.8)
 
     def createWheels(self, wx, wz, r = 0, l = 0):
         wheel = ode.Body(self.world)
@@ -155,7 +138,6 @@ class Road(object):
             self.zPos = -(self.numLanes/2.0 - laneMain + 0.5) * ROADSIZE
         else:
             self.zPos = (laneMain - self.numLanes/2 -1 + 0.5) * ROADSIZE
-            print "a"
         self.size = ROADSIZE * self.numLanes
         self.yPos =  0.20834342658224672 - WHEELRADIUS + 0.01
         self.create()
@@ -163,9 +145,9 @@ class Road(object):
     def create(self):
         self.body = ode.Body(self.world)
         mass = ode.Mass()
-        mass.setBox(1, 3000, 0.01, self.size)
+        mass.setBox(ROADDENSITY, ROADLENGTH, ROADHEIGHT, self.size)
         self.body.setMass(mass)
-        self.geom = ode.GeomBox(self.space, (3000, 0.01, self.size))
+        self.geom = ode.GeomBox(self.space, (ROADLENGTH, ROADHEIGHT, self.size))
         self.geom.setBody(self.body)
         self.geom.setPosition((0,0, self.zPos))
         self.viz.addGeom(self.geom)
@@ -195,27 +177,106 @@ class Person(object):
         self.position = position
         self.velocity = velocity
         self.road = road
-        self.personColor = PERSONCOLOR
+        self.axis2 = (0,0,1)
+        self.axis1 = (0,1,0)
+        self.axis3 = (1,0,0)
         self.create()
 
     def create(self):
         self.body = ode.Body(self.world)
         mass = ode.Mass()
-        mass.setCylinder(100, 2, PERSONRADIUS, PERSONHEIGHT)
+        mass.setCylinderTotal(75, 2, PERSONRADIUS, PERSONHEIGHT)
         geom = ode.GeomCylinder(self.space, PERSONRADIUS, PERSONHEIGHT)
         geom.setBody(self.body)
         x,y,z = self.position
         self.body.setRotation((1, 0, 0, 0, 0, -1, 0, 1, 0))
-        self.body.setPosition((x, y + 0.9, z))
+        self.body.setPosition((x, y + PERSONHEIGHT/2 + SPHERERADIUS, z))
         self.viz.addGeom(geom)
-        self.viz.GetProperty(self.body).SetColor(self.personColor)
+        self.viz.GetProperty(self.body).SetColor(PERSONCOLOR)
+        #create spheres
+        self.w1, gw1 = self.createSphere(x + PERSONRADIUS - SPHERERADIUS, z)
+        self.w2, gw2 = self.createSphere(x - PERSONRADIUS + SPHERERADIUS, z)
+        #s3, gs3 = self.createSphere(x, z + PERSONRADIUS - SPHERERADIUS)
+        self.s4, gs4 = self.createSphere(x, z - PERSONRADIUS + SPHERERADIUS)
+
+        #create joints
+        self.j1 = ode.Hinge2Joint(self.world)
+        self.j1.attach(self.w1, self.body)
+        self.j1.setAnchor((x + PERSONRADIUS - SPHERERADIUS, SPHERERADIUS, z))
+        self.j1.setAxis1(self.axis3)
+        self.j1.setAxis2(self.axis2)
+
+        self.j2 = ode.Hinge2Joint(self.world)
+        self.j2.attach(self.w2, self.body)
+        self.j2.setAnchor((x - PERSONRADIUS + SPHERERADIUS, SPHERERADIUS, z))
+        self.j2.setAxis1(self.axis3)
+        self.j2.setAxis2(self.axis2)
+        
+        '''j3 = ode.Hinge2Joint(self.world)
+        j3.attach(s3, self.body)
+        j3.setAnchor((x, SPHERERADIUS, z + PERSONRADIUS - SPHERERADIUS))
+        j3.setAxis1(self.axis3)
+        j3.setAxis2(self.axis2)'''
+        
+        j4 = ode.Hinge2Joint(self.world)
+        j4.attach(self.s4, self.body)
+        j4.setAnchor((x, SPHERERADIUS, z - PERSONRADIUS + SPHERERADIUS))
+        j4.setAxis1(self.axis3)
+        j4.setAxis2(self.axis2)
         #add person and road to allGroups
-        allGroups.append([self.body, self.road])
+        allGroups.append([self.w1, self.body])
+        allGroups.append([self.w2, self.body])
+        #allGroups.append([s3, self.body])
+        allGroups.append([self.s4, self.body])
+
+        allGroups.append([self.w1, self.road])
+        allGroups.append([self.w2, self.road])
+        #allGroups.append([s3, self.road])
+        allGroups.append([self.s4, self.road])
         self.setLinearVelocity()
+
+    def createSphere(self, sx, sz):
+        sphere = ode.Body(self.world)
+        mSphere = ode.Mass()
+        mSphere.setSphere(PERSONDENSITY, SPHERERADIUS)
+        sphere.setMass(mSphere)
+        geomSphere = ode.GeomSphere(self.space, SPHERERADIUS)
+        geomSphere.setBody(sphere)    
+        sphere.setPosition((sx, SPHERERADIUS, sz))
+        self.viz.addGeom(geomSphere)
+        self.viz.GetProperty(sphere).SetColor(PERSONCOLOR)
+        return sphere, geomSphere
+
+    def createWheels(self, wx, wz):
+        wheel = ode.Body(self.world)
+        mWheel = ode.Mass()
+        mWheel.setCylinder(PERSONDENSITY, 3, SPHERERADIUS, SPHERERADIUS) #density, direction(1,2,3), r, h
+        wheel.setMass(mWheel)
+        geomWheel = ode.GeomCylinder(self.space, SPHERERADIUS, SPHERERADIUS)
+        geomWheel.setBody(wheel)    
+        wheel.setPosition((wx, SPHERERADIUS, wz))
+        self.viz.addGeom(geomWheel)
+        self.viz.GetProperty(wheel).SetColor(WHEELCOLOR)
+        return wheel, geomWheel
 
     def setLinearVelocity(self):
         vx, vy, vz = self.velocity
-        self.body.setLinearVel((vx, vy, vz))
+        ang = atan2(vz, vx)
+        print ang*180/pi, sqrt(vx**2 + vz**2) 
+        ang = -ang
+        '''self.j1.setParam(ode.paramLoStop, ang)
+        self.j1.setParam(ode.paramHiStop, ang)
+        self.j2.setParam(ode.paramLoStop, ang)
+        self.j2.setParam(ode.paramHiStop, ang)'''
+        self.w1.setLinearVel((vx, vy, vz))
+        self.w2.setLinearVel((vx, vy, vz))
+        self.s4.setLinearVel((vx, vy, vz))
+        #self.w1.setRotation((cos(ang), 0, sin(ang), 0, 1, 0, -sin(ang), 0 , cos(ang)))
+        #self.w2.setRotation((cos(ang), 0, sin(ang), 0, 1, 0, -sin(ang), 0 , cos(ang)))
+        #self.w1.setLinearVel((10,0,5))
+        #self.w2.setLinearVel((10,0,5))
+        #self.body.setLinearVel((vx, vy, vz))
+
 
 class TreePole(object):
     def __init__(self, world, space, viz, position, tree = True):
@@ -243,4 +304,5 @@ class TreePole(object):
         self.body.setRotation((1, 0, 0, 0, 0, -1, 0, 1, 0))
         self.body.setPosition((x, y + 1.25, z))
         self.viz.addGeom(geom)
+        #self.viz.stlGeom(self.viz.GetObject(geom), 'Images/tree.stl')
         self.viz.GetProperty(self.body).SetColor(self.color)

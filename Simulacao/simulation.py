@@ -10,14 +10,13 @@ class Sim(ode_viz.ODE_Visualization):
     self.createWorld()
     ode_viz.ODE_Visualization.__init__(self, self.world, [self.space], TIMESTEP)
     self.createObjects()
-    self.cameraFocalPoint = self.road.body.getPosition()
-    self.cameraPosition = np.array(self.cameraFocalPoint) - (30, -30, 0)    
+    self.cameraFocalPoint = np.array(self.road.body.getPosition()) + (10, 0, 0)
+    self.cameraPosition = np.array(self.cameraFocalPoint) - (30, -40, 0)    
     self.changeCameraPosition()
     self.SetSize(800, 600)
     self.SetWindowName("Simulation")
     self.SetBackground(50./255, 153./255, 204./255)
     self.addGeom(self.floor)
-    print self.GetObject(self.floor).color()
     self.contactgroup = ode.JointGroup()
 
   def createWorld(self):
@@ -37,7 +36,9 @@ class Sim(ode_viz.ODE_Visualization):
     sideTop, sideBottom = self.road.getSides()
     self.tree = TreePole(self.world, self.space, self, (10, 0, sideTop + 0.4))
     self.pole = TreePole(self.world, self.space, self, (10, 0, sideBottom - 0.4), False)
-    self.person = Person(self.world, self.space, self, (5, 0, sideBottom + 0.5), (0,0,-10), self.road)
+    #self.person = Person(self.world, self.space, self, (5, 0, sideBottom + 0.5), (15,0,15), self.road)
+    self.othercar = Car(self.world, self.space, self, self.road, mainCar = False, position = (40, 0 , -3), direction = -1)
+    self.othercar.setLinearVelocity((30,0,0))
 
   def changeCameraPosition(self):
     change = np.array(self.mainCar.bodyCar.getLinearVel())*TIMESTEP
@@ -51,7 +52,8 @@ class Sim(ode_viz.ODE_Visualization):
     self.update()
 
   def motion(self):
-    self.changeCameraPosition()
+    #self.changeCameraPosition()
+    #print self.person.body.getLinearVel()
     self.mainCar.addTorque(40)
     n = 2
     for _ in range(n):

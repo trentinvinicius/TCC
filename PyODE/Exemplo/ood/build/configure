@@ -1,7 +1,0 @@
-#!/bin/bash
-
-
-cmake   .. \
-        -DOOD_USE_SINGLE_PRECISION=ON \
-        -DCMAKE_INSTALL_PREFIX=/usr/local/ \
-        -DCMAKE_BUILD_TYPE=Release

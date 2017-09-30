@@ -1,2 +1,0 @@
-import pybullet as p
-

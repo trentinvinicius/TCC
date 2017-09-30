@@ -1,4 +1,0 @@
-Download the data from http://bitbucket.org/rmartino/ood/downloads/ood-data-2.0.0.zip
-
-
-see README

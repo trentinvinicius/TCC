@@ -6,8 +6,13 @@ from objects import *
 from constants import *
 
 class Sim(ode_viz.ODE_Visualization):
-  def __init__(self, mainCar, road, people, otherCars = None, trees = None, poles = None):
+  def __init__(self, mainCarInfo, roadInfo, peopleInfo, otherCarsInfo = None, treepoleInfo = None):
     self.createWorld()
+    self.mainCarInfo = mainCarInfo        # (numPassengers, velocity, inicialSteerAngle)
+    self.roadInfo = roadInfo              # (nLanes, direction, position mainCar)
+    self.peopleInfo = peopleInfo          # [(position, velocity)], position = x, z, theta
+    self.otherCarsInfo = otherCarsInfo    # [(position, direction, velocity)], position = x, 0, z
+    self.treepoleInfo = treepoleInfo      # [(x, z, tree)], z is 0 or 1 corresponding the side of the road, tree is 0 or 1: 0 - pole, 1 - tree
     ode_viz.ODE_Visualization.__init__(self, self.world, [self.space], TIMESTEP)
     self.createObjects()
     self.cameraFocalPoint = np.array(self.road.body.getPosition()) + (10, 0, 0)
@@ -31,14 +36,26 @@ class Sim(ode_viz.ODE_Visualization):
     self.floor = ode.GeomPlane(self.space, (0, 1, 0), 0)
 
   def createObjects(self):
-    self.road = Road(self.world, self.space, self, 4, 1, 2)
-    self.mainCar = Car(self.world, self.space, self, self.road)
+    self.road = Road(self.world, self.space, self, self.roadInfo[0], self.roadInfo[1], self.roadInfo[2])
+    self.mainCar = Car(self.world, self.space, self, self.road, self.mainCarInfo[0])
     sideTop, sideBottom = self.road.getSides()
-    self.tree = TreePole(self.world, self.space, self, (10, 0, sideTop + 0.4))
-    self.pole = TreePole(self.world, self.space, self, (10, 0, sideBottom - 0.4), False)
-    #self.person = Person(self.world, self.space, self, (5, 0, sideBottom + 0.5), (15,0,15), self.road)
-    self.othercar = Car(self.world, self.space, self, self.road, mainCar = False, position = (40, 0 , -3), direction = -1)
-    self.othercar.setLinearVelocity((30,0,0))
+    if (self.treepoleInfo != None):
+       for tp in self.treepoleInfo:
+          if tp[1] == 0:
+             s = sideTop + 1
+          else:
+             s = sideBottom - 1
+          TreePole(self.world, self.space, self, (tp[0], 0, s), tp[2])
+    if (self.peopleInfo != None):
+       self.a = []
+       for p in self.peopleInfo:
+          self.a.append(Person(self.world, self.space, self, p[0], p[1], self.road))
+    if (self.otherCarsInfo != None):
+       for c in self.otherCarsInfo:
+          car = Car(self.world, self.space, self, self.road, mainCar = False, position = c[0], direction = c[1])
+          car.setLinearVelocity(c[2])
+    self.mainCar.setSteerAngle(self.mainCarInfo[2])
+    self.mainCar.setLinearVelocity(self.mainCarInfo[1])
 
   def changeCameraPosition(self):
     change = np.array(self.mainCar.bodyCar.getLinearVel())*TIMESTEP
@@ -53,8 +70,12 @@ class Sim(ode_viz.ODE_Visualization):
 
   def motion(self):
     #self.changeCameraPosition()
-    #print self.person.body.getLinearVel()
-    self.mainCar.addTorque(40)
+    #e,f,g = self.a[0].body.getLinearVel()
+    #print sqrt(e**2 + g**2), atan2(e,g)*180/pi
+    #self.mainCar.brake()
+    #print self.mainCar.getPosition()
+    
+
     n = 2
     for _ in range(n):
         # Detect collisions and create contact joints
@@ -90,5 +111,3 @@ class Sim(ode_viz.ODE_Visualization):
         j = ode.ContactJoint(self.world, self.contactgroup, c)
         j.attach(geom1.getBody(), geom2.getBody())
 
-sim = Sim(0, 0, 0)
-sim.start()

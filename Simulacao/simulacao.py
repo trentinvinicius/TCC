@@ -1,7 +1,14 @@
 import ode
+import odeViz.ode_visualization as ode_viz
+from math import pi, cos, sin
 import numpy as np
-from math import cos, sin, pi, atan2, sqrt
-from constants import *
+from objects import *
+
+#Definitions
+fps = 30.0
+dt = 1.0/fps
+
+global allGroups
 
 allGroups = []
 
@@ -44,7 +51,9 @@ class Car(object):
            self.bodyRWL, self.geomRWL = self.createWheels(-CARLENGTH/2 , -CARWIDTH/2)
            self.bodyRWR, self.geomRWR = self.createWheels(-CARLENGTH/2 ,  CARWIDTH/2)
            #self.viz.stlGeom(self.viz.GetObject(self.geomCar), CARGOINGFILE)
+        self.viz.GetProperty(self.bodyFWL).SetColor(self.bodyCarColor)
         #create front left joint
+
         self.flJoint = ode.Hinge2Joint(self.world)
         self.flJoint.attach(self.bodyCar, self.bodyFWL)
         if (self.direction == 1):
@@ -56,7 +65,6 @@ class Car(object):
         self.flJoint.setParam(ode.ParamSuspensionCFM, 0.5)
         self.flJoint.setParam(ode.ParamSuspensionERP, 0.8)
         '''
-
         self.flJointRoll = ode.HingeJoint(self.world)
         self.flJointYaw  = ode.HingeJoint(self.world)
         flJointBody = ode.Body(self.world)
@@ -70,15 +78,14 @@ class Car(object):
            self.flJointYaw.setAnchor((CARLENGTH/2 + self.position[0], WHEELRADIUS + self.position[1], - CARWIDTH/2 + self.position[2]))
         else:
            self.flJointRoll.setAnchor((-CARLENGTH/2 + self.position[0], WHEELRADIUS + self.position[1], CARWIDTH/2 + self.position[2]))
+           print ((-CARLENGTH/2 + self.position[0], WHEELRADIUS + self.position[1], CARWIDTH/2 + self.position[2])), self.bodyFWL.getPosition()
            self.flJointYaw.setAnchor((-CARLENGTH/2 + self.position[0], WHEELRADIUS + self.position[1], CARWIDTH/2 + self.position[2]))
         self.flJointRoll.setAxis((0,0,1))
         self.flJointYaw.setAxis((0,1,0))
         self.flJointRoll.setParam(ode.ParamSuspensionCFM, 0.5)
         self.flJointRoll.setParam(ode.ParamSuspensionERP, 0.8)
         self.flJointYaw.setParam(ode.ParamSuspensionCFM, 0.5)
-        self.flJointYaw.setParam(ode.ParamSuspensionERP, 0.8)
-        '''
-
+        self.flJointYaw.setParam(ode.ParamSuspensionERP, 0.8)'''
         #create front right joint
         self.frJoint = ode.Hinge2Joint(self.world)
         self.frJoint.attach(self.bodyCar, self.bodyFWR)
@@ -90,11 +97,7 @@ class Car(object):
         self.frJoint.setAxis1((0,1,0))
         self.frJoint.setParam(ode.ParamSuspensionCFM, 0.5)
         self.frJoint.setParam(ode.ParamSuspensionERP, 0.8)
-
-        
-    MUDAR Joints
-    MUDAR PLANO 
-    
+        '''
         self.frJointRoll = ode.HingeJoint(self.world)
         self.frJointYaw  = ode.HingeJoint(self.world)
         frJointBody = ode.Body(self.world)
@@ -114,9 +117,7 @@ class Car(object):
         self.frJointRoll.setParam(ode.ParamSuspensionCFM, 0.5)
         self.frJointRoll.setParam(ode.ParamSuspensionERP, 0.8)
         self.frJointYaw.setParam(ode.ParamSuspensionCFM, 0.5)
-        self.frJointYaw.setParam(ode.ParamSuspensionERP, 0.8)
-
-        
+        self.frJointYaw.setParam(ode.ParamSuspensionERP, 0.8)'''
         #create rear left joint
         self.rlJoint = ode.HingeJoint(self.world)
         self.rlJoint.attach(self.bodyCar, self.bodyRWL)
@@ -138,11 +139,13 @@ class Car(object):
         allGroups.append([self.bodyFWR, self.bodyCar])
         allGroups.append([self.bodyRWL, self.bodyCar])
         allGroups.append([self.bodyRWR, self.bodyCar])
+        #allGroups.append([self.bodyFWL, self.bodyFWR, self.bodyRWL, self.bodyRWR, nullMass2, nullMass1, self.bodyCar])
+
         #add Wheels and Road to allGroups
-        #allGroups.append([self.bodyFWL, self.road])
-        #allGroups.append([self.bodyFWR, self.road])
-        #allGroups.append([self.bodyRWL, self.road])
-        #allGroups.append([self.bodyRWR, self.road])
+        '''allGroups.append([self.bodyFWL, self.road])
+        allGroups.append([self.bodyFWR, self.road])
+        allGroups.append([self.bodyRWL, self.road])
+        allGroups.append([self.bodyRWR, self.road])'''
         #create front left motor
         self.flMotorRoll = ode.AMotor(self.world)
         self.flMotorRoll.attach(self.bodyCar, self.bodyFWL)
@@ -191,23 +194,30 @@ class Car(object):
 
     def setLinearVelocity(self, velocity):
         vx = self.direction*velocity
-        #self.bodyCar.setLinearVel((vx, 0, 0))
-        #print self.flJoint.getParam(ode.ParamFMax)
-        #self.flJoint.setParam(ode.ParamFMax2,1000)
-        #print self.flJoint.getParam(ode.ParamFMax2)
+        self.bodyCar.setLinearVel((vx, 0, 0))
+        
+        print self.flJointRoll.getParam(ode.ParamFMax2)
+        self.flJointRoll.setParam(ode.ParamFMax2,1000)
+        print self.flJointRoll.getParam(ode.ParamFMax2),    "a"
 
 
         self.flMotorRoll.setParam(ode.ParamFMax, 10000)
-        print self.flMotorRoll.getParam(ode.ParamFMax)
+        # print 'a', self.flMotorRoll.getParam(ode.ParamFMax)
         self.frMotorRoll.setParam(ode.ParamFMax, 10000)
         self.rlMotorRoll.setParam(ode.ParamFMax, 10000)
         self.rrMotorRoll.setParam(ode.ParamFMax, 10000)
-    
+        
         self.flMotorRoll.setParam(ode.ParamVel, vx)
         self.frMotorRoll.setParam(ode.ParamVel, vx)
         self.rlMotorRoll.setParam(ode.ParamVel, vx)
         self.rrMotorRoll.setParam(ode.ParamVel, vx)
 
+        #self.bodyFWL.setLinearVel((vx,0,0))
+        
+
+    def getLinearVelocity(self):
+        return self.bodyCar.getLinearVel()
+        
     def addTorque(self, torque):
         self.flMotorRoll.addTorques(torque, 0.0, 0.0)
         self.frMotorRoll.addTorques(torque, 0.0, 0.0)
@@ -217,13 +227,15 @@ class Car(object):
             ang = MINSTEERANGLE
         if (ang > MAXSTEERANGLE):
             ang = MAXSTEERANGLE
-        self.flJoint.setParam(ode.paramLoStop, ang)
-        self.flJoint.setParam(ode.paramHiStop, ang)
-        self.frJoint.setParam(ode.paramLoStop, ang)
-        self.frJoint.setParam(ode.paramHiStop, ang)
+
+        ang *= pi/180.0
+        self.flJointYaw.setParam(ode.paramLoStop, ang)
+        self.flJointYaw.setParam(ode.paramHiStop, ang)
+        self.frJointYaw.setParam(ode.paramLoStop, ang)
+        self.frJointYaw.setParam(ode.paramHiStop, ang)
 
     def getSteerAngle(self):
-        print self.flJoint.getAngle1Rate()
+        #print self.flJoint.getAngle1Rate()
         return (28.64788975654116*(self.flJoint.getParam(ode.paramHiStop) + self.flJoint.getParam(ode.paramLoStop)), \
                 28.64788975654116*(self.frJoint.getParam(ode.paramHiStop) + self.frJoint.getParam(ode.paramLoStop)))   # 28.64788975654116 = 0.5 * 180/pi
 
@@ -234,9 +246,9 @@ class Car(object):
         rBrakeForce = 250.0
         fBrakeForce = 500.0
         self.flJoint.setParam(ode.ParamVel2, 0.0)
-        #print "abcd", self.flJoint.getParam(ode.ParamFMax)
+        print "abcd", self.flJoint.getParam(ode.ParamFMax)
         self.flJoint.setParam(ode.ParamFMax2, fBrakeForce)
-        #print "abc", self.flJoint.getParam(ode.ParamFMax)
+        print "abc", self.flJoint.getParam(ode.ParamFMax)
         self.frJoint.setParam(ode.ParamVel2, 0.0)
         self.frJoint.setParam(ode.ParamFMax2, fBrakeForce)
         self.rlJoint.setParam(ode.ParamVel2, 0.0)
@@ -245,159 +257,80 @@ class Car(object):
         self.rrJoint.setParam(ode.ParamFMax2, rBrakeForce)
 
 
-'''
 
-torque ele aplica nas juntas diferenciais
-freio ele aplica em cada hinge
+contactgroup = ode.JointGroup()
 
-ambos os casos e mudando os parametros vel2 e FMax2
-'''
-class Road(object):
-    def __init__(self, world, space, viz, numLanes, direction, laneMain):
-        self.world = world
-        self.space = space[0]
-        self.viz = viz
-        self.direction = direction
-        self.numLanes = float(numLanes)
-        if (laneMain <= self.numLanes/2.0):
-            self.zPos = -(self.numLanes/2.0 - laneMain + 0.5) * ROADSIZE
-        else:
-            self.zPos = (laneMain - self.numLanes/2 -1 + 0.5) * ROADSIZE
-        self.size = ROADSIZE * self.numLanes
-        self.yPos =  0.20834342658224672 - WHEELRADIUS + ROADHEIGHT
-        self.create()
+def near_callback(args, geom1, geom2):
+    """Callback function for the collide() method.
 
-    def create(self):
-        self.body = ode.Body(self.world)
-        mass = ode.Mass()
-        mass.setBox(ROADDENSITY, ROADLENGTH, ROADHEIGHT, self.size)
-        self.body.setMass(mass)
-        self.geom = ode.GeomBox(self.space, (ROADLENGTH, ROADHEIGHT, self.size))
-        self.geom.setBody(self.body)
-        self.geom.setPosition((0,0, self.zPos))
-        self.viz.addGeom(self.geom)
-        self.viz.GetProperty(self.body).SetColor(ROADCOLOR)
-        p = []
-        for n in range(int(self.numLanes)):
-            p.append((-100, self.yPos, self.zPos + (self.numLanes/2 - n) * ROADSIZE, 1500, self.yPos, self.zPos + (self.numLanes/2 - n) * ROADSIZE, 1))
-        p.append((-100, self.yPos, self.zPos + self.numLanes/2 * ROADSIZE, 1500, self.yPos, self.zPos + self.numLanes/2 * ROADSIZE, 0))
-        p.append((-100, self.yPos, self.zPos - self.numLanes/2 * ROADSIZE, 1500, self.yPos, self.zPos - self.numLanes/2 * ROADSIZE, 0))
-        if (self.numLanes % 2 == 0):
-            if (self.direction):
-                p.append((-100,  self.yPos, self.zPos, 1500,  self.yPos, self.zPos, 0))
-            else:
-                p.append((-100,  self.yPos, self.zPos, 1500,  self.yPos, self.zPos, 0))
-        self.viz.drawLines(p)
+    This function checks if the given geoms do collide and
+    creates contact joints if they do.
+    """
+    body1 = geom1.getBody()
+    body2 = geom2.getBody()
+    # Contacts in the same group are ignored
+    # e.g. foot and lower leg
+    for group in allGroups:
+        if body1 in group and body2 in group:
+            return
 
-    def getSides(self):
-        return (self.zPos + self.numLanes/2 * ROADSIZE, self.zPos - self.numLanes/2 * ROADSIZE)
+    # Check if the objects do collide
+    contacts = ode.collide(geom1, geom2)
 
-class Person(object):
-    def __init__(self, world, space, viz, position, velocity, road):
-        '''Position is a (x, 0, z) vector referenced from the car center
-           Velocity is a three component vector (vx, 0, vz)'''
-        self.world = world
-        self.space = space[0]
-        self.viz = viz
-        self.position = position
-        self.velocity = velocity
-        self.road = road
-        self.create()
+    # Create contact joints
+    world,contactgroup = args
+    for c in contacts:
 
-    def create(self):
-        self.body = ode.Body(self.world)
-        mass = ode.Mass()
-        mass.setCylinderTotal(75, 2, PERSONRADIUS, PERSONHEIGHT)
-        geom = ode.GeomCylinder(self.space, PERSONRADIUS, PERSONHEIGHT)
-        geom.setBody(self.body)
-        x,y,z = self.position
-        self.body.setRotation((1, 0, 0, 0, 0, -1, 0, 1, 0))
-        self.body.setPosition((x, y + PERSONHEIGHT/2 + SPHERERADIUS, z))
-        self.viz.addGeom(geom)
-        self.viz.GetProperty(self.body).SetColor(PERSONCOLOR)
-        self.viz.stlGeom(self.viz.GetObject(geom), PERSONFILE)
-        
-        #create spheres
-        self.w1, gw1 = self.createSphere(x + PERSONRADIUS - SPHERERADIUS, z)
-        self.w2, gw2 = self.createSphere(x - PERSONRADIUS + SPHERERADIUS, z)
-        self.w3, gw3 = self.createSphere(x, z - PERSONRADIUS + SPHERERADIUS)
+        c.setBounce(0.2)
+        c.setMu(5000)
+        j = ode.ContactJoint(world, contactgroup, c)
+        j.attach(geom1.getBody(), geom2.getBody())
 
-        #create joints
-        self.j1 = ode.BallJoint(self.world)
-        self.j1.attach(self.w1, self.body)
-        self.j1.setAnchor((x + PERSONRADIUS - SPHERERADIUS, SPHERERADIUS, z))
-        self.j2 = ode.BallJoint(self.world)
-        self.j2.attach(self.w2, self.body)
-        self.j2.setAnchor((x - PERSONRADIUS + SPHERERADIUS, SPHERERADIUS, z))
-        self.j3 = ode.BallJoint(self.world)
-        self.j3.attach(self.w3, self.body)
-        self.j3.setAnchor((x, SPHERERADIUS, z - PERSONRADIUS + SPHERERADIUS))
-   
-        #add person and road to allGroups
-        allGroups.append([self.w1, self.body])
-        allGroups.append([self.w2, self.body])
-        allGroups.append([self.w3, self.body])
-       
-        self.setLinearVelocity()
-        
-    def createSphere(self, sx, sz):
-        sphere = ode.Body(self.world)
-        mSphere = ode.Mass()
-        mSphere.setSphere(PERSONDENSITY, SPHERERADIUS)
-        sphere.setMass(mSphere)
-        geomSphere = ode.GeomSphere(self.space, SPHERERADIUS)
-        geomSphere.setBody(sphere)    
-        sphere.setPosition((sx, SPHERERADIUS, sz))
-        self.viz.addGeom(geomSphere)
-        self.viz.GetProperty(sphere).SetColor(PERSONCOLOR)
-        return sphere, geomSphere
+#create World
+world = ode.World()
+world.setGravity((0, -9.81, 0))
+world.setERP(0.8)
+world.setCFM(1E-5)
 
-    def createWheels(self, wx, wz):
-        wheel = ode.Body(self.world)
-        mWheel = ode.Mass()
-        mWheel.setCylinder(PERSONDENSITY, 3, SPHERERADIUS, SPHERERADIUS) #density, direction(1,2,3), r, h
-        wheel.setMass(mWheel)
-        geomWheel = ode.GeomCylinder(self.space, SPHERERADIUS, SPHERERADIUS)
-        geomWheel.setBody(wheel)    
-        wheel.setPosition((wx, SPHERERADIUS, wz))
-        self.viz.addGeom(geomWheel)
-        self.viz.GetProperty(wheel).SetColor(WHEELCOLOR)
-        return wheel, geomWheel
+#create Space
+space = ode.Space()
 
-    def setLinearVelocity(self):
-        vx, vy, vz = self.velocity
-        self.w1.setLinearVel((vx, vy, vz))
-        self.w2.setLinearVel((vx, vy, vz))
-        self.w3.setLinearVel((vx, vy, vz))
+# Create a plane geom which prevent the objects from falling forever
+floor = ode.GeomPlane(space, (0, 1, 0), -4)
+i = 0
+j = 0
+se = 0
+def idlefunc():
+    
+    global i, c2, j, se
+    #c2.setSteerAngle(0.0)
+    #c2.setLinearVelocity(10)
+    n = 2
+    for _ in range(n):
+        # Detect collisions and create contact joints
+
+        space.collide((world,contactgroup), near_callback)
+
+        # Simulation step
+        world.step(dt/n)
+
+        # Remove all contact joints
+        contactgroup.empty()
 
 
-class TreePole(object):
-    def __init__(self, world, space, viz, position, tree = True):
-        '''Position is a (x, 0, z) vector referenced from the car center'''
-        self.world = world
-        self.space = space[0]
-        self.viz = viz
-        self.position = position
-        self.tree = tree
-        if tree:
-            self.color = TREECOLOR
-            self.d = TREEDENSITY
-        else:
-            self.color = POLECOLOR
-            self.d = POLEDENSITY
-        self.create()
+class my_sim(ode_viz.ODE_Visualization):
+   def __init__(self, world, space, dt):
+      ode_viz.ODE_Visualization.__init__(self, world, space, dt)
+      self.GetActiveCamera().SetPosition(0.28, 28.878, 50.654)
+      self.GetActiveCamera().SetFocalPoint(-0.1105, 2.8448, -0.4285)
+      self.GetActiveCamera().SetViewUp(0.002656, 0.9038, -0.4278)
+      self.SetSize(800,600)
+      self.SetWindowName("Simulacao")
+      self.SetBackground(50./255,153./255,204./255)
+   def execute(self, caller, event):
+      idlefunc()
+      self.update()
 
-    def create(self):
-        self.body = ode.Body(self.world)
-        mass = ode.Mass()
-        mass.setCylinder(self.d, 2, TREEPOLERADIUS, TREEPOLEHEIGHT)
-        geom = ode.GeomCylinder(self.space, TREEPOLERADIUS, TREEPOLEHEIGHT)
-        geom.setBody(self.body)
-        x,y,z = self.position
-        self.body.setRotation((1, 0, 0, 0, 0, -1, 0, 1, 0))
-        self.body.setPosition((x, y + TREEPOLEHEIGHT/2, z))
-        self.viz.addGeom(geom)
-        if (self.tree):
-            self.viz.stlGeom(self.viz.GetObject(geom), TREEFILE)
-            #self.viz.rotateActor(self.viz.GetObject(geom), np.array([1, 0, 0]), 180)
-        self.viz.GetProperty(self.body).SetColor(self.color)
+viz = my_sim(world, [space], dt)
+c2 = Car(world, [space], viz, road = 1)
+viz.start()

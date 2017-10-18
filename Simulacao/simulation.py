@@ -6,22 +6,30 @@ from objects import *
 from constants import *
 
 class Sim(ode_viz.ODE_Visualization):
-  def __init__(self, mainCarInfo, roadInfo, peopleInfo, otherCarsInfo = None, treepoleInfo = None):
+  def __init__(self, mainCarInfo, roadInfo, peopleInfo, parameters, otherCarsInfo = None, treepoleInfo = None):
     self.createWorld()
     self.mainCarInfo = mainCarInfo        # (numPassengers, velocity, inicialSteerAngle)
+    self.mainCarVelocity = self.mainCarInfo[1]
     self.roadInfo = roadInfo              # (nLanes, direction, position mainCar)
     self.peopleInfo = peopleInfo          # [(position, velocity)], position = x, z, theta
     self.otherCarsInfo = otherCarsInfo    # [(position, direction, velocity)], position = x, 0, z
     self.treepoleInfo = treepoleInfo      # [(x, z, tree)], z is 0 or 1 corresponding the side of the road, tree is 0 or 1: 0 - pole, 1 - tree
+    self.parameters = parameters          # parameters from the genetic algorithm
+    self.calcSteerAngles()
     ode_viz.ODE_Visualization.__init__(self, self.world, [self.space], TIMESTEP)
+    self.otherCars = []
     self.createObjects()
-    self.cameraFocalPoint = np.array(self.road.body.getPosition()) + (10, 0, 0)
+    self.cameraFocalPoint = np.array(self.road.geom.getPosition()) + (10, 0, 0) - (ROADLENGTH/2 - 100.0, 0, 0)
     self.cameraPosition = np.array(self.cameraFocalPoint) - (30, -40, 0)    
     self.changeCameraPosition()
     self.SetSize(800, 600)
     self.SetWindowName("Simulation")
     self.SetBackground(50./255, 153./255, 204./255)
     self.addGeom(self.floor)
+    self.addGeom(self.base)
+    self.GetObject(self.base).SetTexture('Images/floor.jpg')
+    self.aux = 0
+
     self.contactgroup = ode.JointGroup()
 
   def createWorld(self):
@@ -34,10 +42,18 @@ class Sim(ode_viz.ODE_Visualization):
     self.space = ode.Space()
 		# Create a plane geom which prevent the objects from falling forever
     self.floor = ode.GeomPlane(self.space, (0, 1, 0), 0)
+    self.base = ode.Body(self.world)
+    self.bMass = ode.Mass()
+    self.bMass.setBox(BASEDENSITY, BASELENGTH, BASEHEIGHT, BASEWIDTH)
+    self.base.setMass(self.bMass)
+    self.geomBase = ode.GeomBox(self.space, (BASELENGTH, BASEHEIGHT, BASEWIDTH))
+    self.geomBase.setBody(self.base)
+    self.geomBase.setPosition((BASELENGTH/2 - 100.0, BASEHEIGHT/2, 0.0))
+    self.base.disable()
 
   def createObjects(self):
     self.road = Road(self.world, self.space, self, self.roadInfo[0], self.roadInfo[1], self.roadInfo[2])
-    self.mainCar = Car(self.world, self.space, self, self.road, self.mainCarInfo[0])
+    self.mainCar = Car(self.world, self.space, self, passengers = self.mainCarInfo[0]) 
     sideTop, sideBottom = self.road.getSides()
     if (self.treepoleInfo != None):
        for tp in self.treepoleInfo:
@@ -45,17 +61,25 @@ class Sim(ode_viz.ODE_Visualization):
              s = sideTop + 1
           else:
              s = sideBottom - 1
-          TreePole(self.world, self.space, self, (tp[0], 0, s), tp[2])
+          TreePole(self.world, self.space, self, (tp[0], 0, s), tp[2], self.base)
     if (self.peopleInfo != None):
        self.a = []
        for p in self.peopleInfo:
-          self.a.append(Person(self.world, self.space, self, p[0], p[1], self.road))
+          self.a.append(Person(self.world, self.space, self, p[0], p[1]))
+
     if (self.otherCarsInfo != None):
        for c in self.otherCarsInfo:
-          car = Car(self.world, self.space, self, self.road, mainCar = False, position = c[0], direction = c[1])
+          car = Car(self.world, self.space, self, mainCar = False, position = c[0], direction = c[1])
           car.setLinearVelocity(c[2])
+          car.setSteerAngle(0.0)
+          self.otherCars.append(car)
     self.mainCar.setSteerAngle(self.mainCarInfo[2])
-    self.mainCar.setLinearVelocity(self.mainCarInfo[1])
+    print self.mainCarInfo[2]
+    self.mainCar.setLinearVelocity(self.mainCarVelocity)
+
+  def calcSteerAngles(self):
+    X = np.arange(0.0, MAXSIMTIME, TIMESTEP)
+    self.steerAngles = iter([self.parameters[1]*sin(2*pi*self.parameters[2]*x + self.parameters[3]) for x in X])
 
   def changeCameraPosition(self):
     change = np.array(self.mainCar.bodyCar.getLinearVel())*TIMESTEP
@@ -64,18 +88,39 @@ class Sim(ode_viz.ODE_Visualization):
     self.GetActiveCamera().SetPosition(self.cameraPosition)
     self.GetActiveCamera().SetFocalPoint(self.cameraFocalPoint)
 
+  def changeMainCarVelocity(self):
+    old = self.mainCarVelocity
+    self.mainCarVelocity += self.parameters[0]*TIMESTEP
+    if ((old >= 0 and self.mainCarVelocity < 0) or (old <= 0 and self.mainCarVelocity > 0)):
+      self.mainCarVelocity = 0.0
+    self.mainCar.setLinearVelocity(self.mainCarVelocity)
+
+  def steerMainCar(self):
+    a = next(self.steerAngles)
+    print a
+    self.mainCar.setSteerAngle(a)
+
   def execute(self, caller, event):
     self.motion()
     self.update()
 
+  def stop(self):
+    ode.CloseODE()
+
+  def getFitness(self):
+    print "OI"
+
   def motion(self):
     #self.changeCameraPosition()
-    #e,f,g = self.a[0].body.getLinearVel()
-    #print sqrt(e**2 + g**2), atan2(e,g)*180/pi
-    #self.mainCar.brake()
-    #print self.mainCar.getPosition()
-    
+    self.aux += 1
 
+    #self.changeMainCarVelocity()
+    #self.steerMainCar()
+    print self.mainCar.getLinearVelocity()
+    if (self.aux > 100):
+       pass
+       #self.mainCar.brake()
+       #self.stop()
     n = 2
     for _ in range(n):
         # Detect collisions and create contact joints
@@ -104,10 +149,17 @@ class Sim(ode_viz.ODE_Visualization):
 
     # Create contact joints
     self.world, self.contactgroup = args
-    for c in contacts:
 
+    for c in contacts:
+        #mudar bounce e mu conforme colisao
+        #fixar geometrias
         c.setBounce(0.2)
         c.setMu(5000)
+        if geom1 == self.geomBase and geom2 == self.floor:
+          c.setBounce(0.0)
+          c.setMu(500000)
         j = ode.ContactJoint(self.world, self.contactgroup, c)
         j.attach(geom1.getBody(), geom2.getBody())
+        #pesquisar juntas entre geometrias
+        #anexar geometrias no universo
 

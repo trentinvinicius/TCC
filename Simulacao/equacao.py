@@ -48,5 +48,6 @@ for e,t in enumerate(x):
 y = np.array(y)
 #print y
 
+y = [30*sin(2*pi*0.1*xis) for xis in x]
 plt.plot(x,y)
 plt.show()

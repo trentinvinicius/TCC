@@ -4,6 +4,9 @@ from math import cos, sin, pi, atan2, sqrt
 from constants import *
 
 allGroups = []
+bodies = []
+bodiesNames = []
+
 '''
 
 Fazer metodo de parametrizacao
@@ -17,13 +20,16 @@ uma vez tomada a decisao ele nao sera mudada (referindo-se a generalizacao por n
 '''
 
 class Car(object):
-    def __init__(self, world, space, viz, passengers = 5, mainCar = True, position = (0.0, 0.0, 0.0), direction = 1):
+    def __init__(self, world, space, viz, dist, passengers = 5, mainCar = True, position = (0.0, 0.0, 0.0), direction = 1):
         self.world = world
         self.space = space[0]
         self.viz = viz
         self.passengers = passengers
-        self.position = position
         self.direction = direction
+        if self.direction == 1:
+            self.position = np.array(position) - np.array((dist, 0, 0))
+        else:
+            self.position = np.array(position) + np.array((dist, 0, 0))
         if mainCar:
             self.bodyCarColor = MAINCARCOLOR
         else:
@@ -164,6 +170,7 @@ class Car(object):
         self.frMotorRoll.enable()
         self.frMotorRoll.setParam(ode.ParamSuspensionCFM, 0.5)
         self.frMotorRoll.setParam(ode.ParamSuspensionERP, 0.8)
+        self.flMotorRoll.setFeedback(True)
         #create rear left motor
         self.rlMotorRoll = ode.AMotor(self.world)
         self.rlMotorRoll.attach(self.bodyCar, self.bodyRWL)
@@ -195,7 +202,7 @@ class Car(object):
         return wheel, geomWheel
 
     def setLinearVelocity(self, velocity):
-        vx = self.direction*velocity
+        vx = (self.direction*velocity)/WHEELRADIUS
         #self.bodyCar.setLinearVel((vx, 0, 0))
         self.flMotorRoll.setParam(ode.ParamFMax, 10000)
         self.frMotorRoll.setParam(ode.ParamFMax, 10000)
@@ -233,6 +240,12 @@ class Car(object):
 
     def getPosition(self):
         return self.bodyCar.getPosition()
+
+    def inPosition(self):
+        aux = self.getPosition()[0]
+        if (aux > 0 and int(aux) == 0):
+            return True
+        return False
 
     def brake(self):
         self.flMotorRoll.setParam(ode.ParamFMax, 0)
@@ -336,7 +349,7 @@ class Person(object):
         allGroups.append([self.w2, self.body])
         allGroups.append([self.w3, self.body])
        
-        self.setLinearVelocity()
+        #self.setLinearVelocity()
         
     def createSphere(self, sx, sz):
         sphere = ode.Body(self.world)
@@ -403,8 +416,8 @@ class TreePole(object):
         geom.setBody(self.body)
         x,y,z = self.position
         geom.setRotation((1, 0, 0, 0, 0, -1, 0, 1, 0))
-        geom.setPosition((x, TREEPOLEHEIGHT/2 + BASEHEIGHT, z))
-        geom.setBody(self.base)
+        geom.setPosition((x, TREEPOLEHEIGHT/2 + 1 + BASEHEIGHT, z))
+        #geom.setBody(self.base)
 
         '''self.base2 = ode.Body(self.world)
         mass2 = ode.Mass()
@@ -417,9 +430,9 @@ class TreePole(object):
 
         #allGroups.append((self.base, self.base2))
         #allGroups.append((self.base2, self.body))
-        #fxJoint = ode.FixedJoint(self.world)
-        #fxJoint.attach(self.body, self.base2)
-        #fxJoint.setFixed()
+        fxJoint = ode.FixedJoint(self.world)
+        fxJoint.attach(self.body, ode.environment)
+        fxJoint.setFixed()
         #fxJoint.setAnchor((x, BASEHEIGHT/2, z))
         #fxJoint.setAxis((0,1,0))
         #base.setPosition((x, y, z))

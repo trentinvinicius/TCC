@@ -6,29 +6,33 @@ from objects import *
 from constants import *
 
 class Sim(ode_viz.ODE_Visualization):
-  def __init__(self, mainCarInfo, roadInfo, peopleInfo, parameters, otherCarsInfo = None, treepoleInfo = None):
+  def __init__(self, mainCarInfo, roadInfo, peopleInfo, parameters, otherCarsInfo, treepoleInfo, name, test):
+    self.iniciate()
     self.createWorld()
-    self.mainCarInfo = mainCarInfo        # (numPassengers, velocity, inicialSteerAngle)
+    self.mainCarInfo = mainCarInfo        # (numPassengers, velocity, inicialSteerAngle, inicialDistance)
     self.mainCarVelocity = self.mainCarInfo[1]
     self.roadInfo = roadInfo              # (nLanes, direction, position mainCar)
     self.peopleInfo = peopleInfo          # [(position, velocity)], position = x, z, theta
-    self.otherCarsInfo = otherCarsInfo    # [(position, direction, velocity)], position = x, 0, z
+    self.otherCarsInfo = otherCarsInfo    # [(position, direction, velocity, inicialDistance)], position = x, 0, z
     self.treepoleInfo = treepoleInfo      # [(x, z, tree)], z is 0 or 1 corresponding the side of the road, tree is 0 or 1: 0 - pole, 1 - tree
     self.parameters = parameters          # parameters from the genetic algorithm
     self.calcSteerAngles()
     ode_viz.ODE_Visualization.__init__(self, self.world, [self.space], TIMESTEP)
     self.otherCars = []
+    self.people = []
     self.createObjects()
-    self.cameraFocalPoint = np.array(self.road.geom.getPosition()) + (10, 0, 0) - (ROADLENGTH/2 - 100.0, 0, 0)
+    self.cameraFocalPoint = np.array(self.mainCar.getPosition()) + (10, 0, 0) #- (ROADLENGTH/2 - 100.0, 0, 0)
     self.cameraPosition = np.array(self.cameraFocalPoint) - (30, -40, 0)    
     self.changeCameraPosition()
     self.SetSize(800, 600)
-    self.SetWindowName("Simulation")
+    title = "Simulation " + name
+    self.SetWindowName(title)
     self.SetBackground(50./255, 153./255, 204./255)
     self.addGeom(self.floor)
     self.addGeom(self.base)
-    self.GetObject(self.base).SetTexture('Images/floor.jpg')
+    self.GetObject(self.base).SetTexture('Images/floor.jpeg')
     self.aux = 0
+    self.simName = name
 
     self.contactgroup = ode.JointGroup()
 
@@ -53,7 +57,7 @@ class Sim(ode_viz.ODE_Visualization):
 
   def createObjects(self):
     self.road = Road(self.world, self.space, self, self.roadInfo[0], self.roadInfo[1], self.roadInfo[2])
-    self.mainCar = Car(self.world, self.space, self, passengers = self.mainCarInfo[0]) 
+    self.mainCar = Car(self.world, self.space, self, self.mainCarInfo[3], passengers = self.mainCarInfo[0]) 
     sideTop, sideBottom = self.road.getSides()
     if (self.treepoleInfo != None):
        for tp in self.treepoleInfo:
@@ -63,18 +67,16 @@ class Sim(ode_viz.ODE_Visualization):
              s = sideBottom - 1
           TreePole(self.world, self.space, self, (tp[0], 0, s), tp[2], self.base)
     if (self.peopleInfo != None):
-       self.a = []
        for p in self.peopleInfo:
-          self.a.append(Person(self.world, self.space, self, p[0], p[1]))
+          self.people.append(Person(self.world, self.space, self, p[0], p[1]))
 
     if (self.otherCarsInfo != None):
        for c in self.otherCarsInfo:
-          car = Car(self.world, self.space, self, mainCar = False, position = c[0], direction = c[1])
-          car.setLinearVelocity(c[2])
+          car = Car(self.world, self.space, self, c[3], mainCar = False, position = c[0], direction = c[1])
+          #car.setLinearVelocity(c[2])
           car.setSteerAngle(0.0)
-          self.otherCars.append(car)
+          self.otherCars.append((car, c[2]))
     self.mainCar.setSteerAngle(self.mainCarInfo[2])
-    print self.mainCarInfo[2]
     self.mainCar.setLinearVelocity(self.mainCarVelocity)
 
   def calcSteerAngles(self):
@@ -100,27 +102,43 @@ class Sim(ode_viz.ODE_Visualization):
     print a
     self.mainCar.setSteerAngle(a)
 
+  def motionStart(self):
+    for p in self.people:
+      p.setLinearVelocity()
+    for c,v in self.otherCars:
+      c.setLinearVelocity(v)
+
   def execute(self, caller, event):
     self.motion()
     self.update()
 
-  def stop(self):
-    ode.CloseODE()
+  def iniciate(self):
+    ode.InitODE()
 
   def getFitness(self):
-    print "OI"
+    return self.simulationTime, self.mainCar.getPosition()[0]
+
+  def close(self):
+    ode.CloseODE()
 
   def motion(self):
-    #self.changeCameraPosition()
+    #print self.simName, self.mainCar.getPosition()
+    self.changeCameraPosition()
     self.aux += 1
-
+    if (self.mainCar.inPosition()):
+      self.motionStart()
+    #print self.mainCar.flMotorRoll.getFeedback()
     #self.changeMainCarVelocity()
     #self.steerMainCar()
-    print self.mainCar.getLinearVelocity()
-    if (self.aux > 100):
-       pass
+    #print self.mainCar.bodyFWL.getLinearVel()
+    if (self.mainCar.getLinearVelocity() > self.mainCarVelocity - 0.05):
+      pass
+      #self.end()
+      #print self.aux*TIMESTEP, self.mainCar.getLinearVelocity(), self.mainCar.flMotorRoll.getParam(ode.ParamVel)
+    if (self.simulationTime >= MAXSIMTIME):
+       #pass
        #self.mainCar.brake()
-       #self.stop()
+       self.end()
     n = 2
     for _ in range(n):
         # Detect collisions and create contact joints
@@ -138,6 +156,7 @@ class Sim(ode_viz.ODE_Visualization):
     """
     body1 = geom1.getBody()
     body2 = geom2.getBody()
+    print type(body1)
     # Contacts in the same group are ignored
     # e.g. foot and lower leg
     for group in allGroups:
